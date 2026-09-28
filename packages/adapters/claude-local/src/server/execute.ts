@@ -430,6 +430,10 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   );
   const effort = asString(config.effort, "");
   const chrome = asBoolean(config.chrome, false);
+  // Opt-in: keep the host's own user/project-scope MCP servers (e.g. servers
+  // registered with `claude mcp add`) alongside the Paperclip-managed ones by
+  // omitting --strict-mcp-config. Off by default to preserve isolation.
+  const inheritHostMcpServers = asBoolean(config.inheritHostMcpServers, false);
   const maxTurns = asNumber(config.maxTurnsPerRun, 0);
   const dangerouslySkipPermissions = asBoolean(config.dangerouslySkipPermissions, true);
   const configEnv = parseObject(config.env);
@@ -901,7 +905,8 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       args.push("--append-system-prompt-file", attemptInstructionsFilePath);
     }
     if (runtimeMcpServers.length > 0) {
-      args.push("--mcp-config", effectiveMcpConfigPath, "--strict-mcp-config");
+      args.push("--mcp-config", effectiveMcpConfigPath);
+      if (!inheritHostMcpServers) args.push("--strict-mcp-config");
     }
     args.push("--add-dir", effectivePromptBundleAddDir);
     if (extraArgs.length > 0) args.push(...extraArgs);

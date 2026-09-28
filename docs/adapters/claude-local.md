@@ -36,6 +36,7 @@ subscription quota exhaustion merely because ACP labels them `limit`.
 | `graceSec` | number | No | Grace period before force-kill |
 | `maxTurnsPerRun` | number | No | Max agentic turns per heartbeat (defaults to `300`) |
 | `dangerouslySkipPermissions` | boolean | No | Skip permission prompts (default: `true`); required for headless runs where interactive approval is impossible |
+| `inheritHostMcpServers` | boolean | No | Keep the host's user/project-scope MCP servers (registered with `claude mcp add`) available alongside Paperclip-managed servers by omitting `--strict-mcp-config` (default: `false`) |
 
 ## Default model
 
@@ -95,6 +96,12 @@ On-call checklist if you see this in production:
 - Confirm `errorCode` is `claude_poisoned_previous_message_id` in the run row — that means the guards fired correctly and the issue auto-recovers on the next heartbeat.
 - If the same issue still loops after one heartbeat, check that `agentTaskSessions` for that `(agentId, taskKey)` was cleared. If not, the adapter return value was lost (e.g. a malformed run finalization) — escalate; do **not** manually edit the row, file a child issue with the run id.
 - For remote execution targets (sandbox/SSH), the poisoned JSONL is on the remote and the adapter only logs the cleanup intent. The fresh-session retry still succeeds because it uses a new session id, and the server-side `clearSession: true` is authoritative regardless of remote disk state.
+
+## MCP Servers
+
+When Paperclip attaches managed MCP servers to a run (its own project tools, connection tools, or connectors), it writes a per-run `--mcp-config` and, by default, also passes `--strict-mcp-config` so the agent sees only those servers. This keeps runs isolated from whatever is registered on the host.
+
+Set `inheritHostMcpServers: true` to omit `--strict-mcp-config`. Claude Code then merges Paperclip's config with the servers registered on the host at user and project scope (for example an Atlassian or Figma server added with `claude mcp add`), so repository commands that depend on those servers keep working under Paperclip. Host servers run with the host's own credentials, so enable this only for agents you trust with them.
 
 ## Skills Injection
 
