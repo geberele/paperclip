@@ -10,7 +10,10 @@ export const decorators: Decorator[] = [
 ];
 export const parameters = {
   layout: "padded",
-  controls: { expanded: false },
+  controls: {
+    expanded: false,
+    exclude: ["onOpen", "actions", "statusBadge", "expanded"],
+  },
   docs: {
     description: {
       component:

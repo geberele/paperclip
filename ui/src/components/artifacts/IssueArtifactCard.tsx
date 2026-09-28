@@ -20,6 +20,7 @@ import {
   artifactText as text,
   artifactNumber as number,
   artifactUrl,
+  artifactPreviewUrl,
   artifactFileSize,
   CSV_PREVIEW_MAX_BYTES,
   loadArtifactCsv,
@@ -79,7 +80,7 @@ export function IssueArtifactFile(props: IssueArtifactFileProps) {
           <VideoCard
             {...props}
             videoUrl={contentPath}
-            posterUrl={artifactUrl(text(metadata, "posterUrl"))}
+            posterUrl={artifactPreviewUrl(text(metadata, "posterUrl"))}
             duration={text(metadata, "durationLabel")}
             onOpen={onOpen}
           />
@@ -112,7 +113,7 @@ export function IssueArtifactFile(props: IssueArtifactFileProps) {
       </>
     );
   }
-  if (data.data)
+  if (localCsv && !tooLarge && data.data)
     return <DataCard {...props} {...data.data} downloadUrl={downloadPath} />;
   return (
     <div className="flex flex-col gap-2">
@@ -227,7 +228,7 @@ export function IssueWorkProductArtifactCard({
       <LinkPreviewCard
         {...identity}
         url={href}
-        imageUrl={artifactUrl(text(m, "imageUrl"))}
+        imageUrl={artifactPreviewUrl(text(m, "imageUrl"))}
         imageAlt={text(m, "imageAlt") || wp.title}
       />
     );

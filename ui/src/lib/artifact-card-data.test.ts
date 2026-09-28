@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   artifactNumber,
+  artifactPreviewUrl,
   artifactUrl,
   CSV_PREVIEW_MAX_BYTES,
   loadArtifactCsv,
@@ -14,6 +15,19 @@ describe("artifact metadata", () => {
     for (const value of [undefined, null, "12", -1, Infinity, NaN])
       expect(artifactNumber({ additions: value }, "additions")).toBeNull();
     expect(artifactNumber({ additions: 0 }, "additions")).toBe(0);
+  });
+  it("loads optional thumbnails only through local authenticated attachment routes", () => {
+    for (const value of [
+      "https://example.com/tracker.png",
+      "http://127.0.0.1/private",
+      "//evil.test/track",
+      "/api/companies",
+      "/api/attachments/a/content?redirect=1",
+    ])
+      expect(artifactPreviewUrl(value)).toBe("");
+    expect(artifactPreviewUrl("/api/attachments/file-1/content")).toBe(
+      "/api/attachments/file-1/content",
+    );
   });
   it("permits web and root-relative URLs only", () => {
     for (const url of [

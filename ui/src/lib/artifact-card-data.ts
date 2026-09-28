@@ -33,6 +33,13 @@ export function artifactUrl(value: string | null | undefined): string {
   }
 }
 
+/** Optional link thumbnails and video posters must not contact producer-chosen hosts. */
+export function artifactPreviewUrl(value: string): string {
+  return /^\/api\/attachments\/[a-zA-Z0-9-]+\/content$/.test(value)
+    ? value
+    : "";
+}
+
 export function artifactFileSize(bytes: number | null): string {
   if (bytes === null) return "";
   if (bytes < 1024) return `${bytes} B`;

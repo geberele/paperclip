@@ -165,6 +165,34 @@ describe("production artifact cards", () => {
     expect(html).toContain("Actual region");
     expect(html).toContain("View data");
   });
+  it("does not automatically load remote thumbnail or poster metadata", () => {
+    const link = render(
+      product({
+        type: "preview_url",
+        metadata: { imageUrl: "https://tracker.example/pixel.png" },
+      }),
+    );
+    expect(link).not.toContain("<img");
+    expect(link).not.toContain("tracker.example");
+    const video = render(
+      product({
+        type: "artifact",
+        metadata: {
+          contentType: "video/mp4",
+          contentPath: "/api/attachments/file-1/content",
+          posterUrl: "https://tracker.example/poster.png",
+        },
+      }),
+    );
+    expect(video).not.toContain("poster=");
+    const local = render(
+      product({
+        type: "preview_url",
+        metadata: { imageUrl: "/api/attachments/thumbnail-1/content" },
+      }),
+    );
+    expect(local).toContain('src="/api/attachments/thumbnail-1/content"');
+  });
   it("keeps branch and runtime actions and blocks unsafe artifact URLs", () => {
     expect(render(product({ type: "branch" }))).toContain("Open on GitHub");
     expect(
