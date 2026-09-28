@@ -48,6 +48,15 @@ const mobileQuestionInteraction = {
   },
 };
 
+const mobileDetailedQuestionInteraction = {
+  ...pendingAskUserQuestionsInteraction,
+  id: "interaction-mobile-detailed-question",
+  payload: {
+    ...pendingAskUserQuestionsInteraction.payload,
+    questions: [pendingAskUserQuestionsInteraction.payload.questions[0]],
+  },
+};
+
 function InteractionAboveComposer({ interaction, mobile = false }: { interaction: IssueThreadInteraction; mobile?: boolean }) {
   const [workMode, setWorkMode] = useState<IssueWorkMode>("standard");
   const [open, setOpen] = useState(true);
@@ -216,6 +225,24 @@ export const MobileQuestionsWithBottomBar: Story = {
     await expect(canvas.getByTestId("task-chat-composer-takeover")).toBeVisible();
     await expect(canvas.getByTestId("task-chat-composer-input")).toBeVisible();
     await expect(canvas.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
+  },
+};
+export const MobileDetailedQuestionsWithBottomBar: Story = {
+  name: "Mobile detailed questions with bottom bar",
+  args: { interaction: mobileDetailedQuestionInteraction, mobile: true },
+  globals: { viewport: { value: "mobile", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const canvas = within(canvasElement);
+    const card = canvas.getByTestId("task-chat-composer-takeover");
+    await expect(canvas.getByRole("radio", { name: /Only collapse hidden descendants/ })).toBeVisible();
+    await expect(canvas.getByRole("radio", { name: /Collapse all descendants by default/ })).toBeVisible();
+    await expect(canvas.getByRole("radio", { name: "Other" })).toBeVisible();
+    await expect(card.scrollHeight).toBeLessThanOrEqual(card.clientHeight);
+    const composer = canvas.getByTestId("task-chat-composer-input");
+    const nav = canvas.getByRole("navigation", { name: "Mobile navigation" });
+    await expect(composer).toBeVisible();
+    await expect(card.getBoundingClientRect().bottom).toBeLessThan(composer.getBoundingClientRect().top);
+    await expect(composer.getBoundingClientRect().bottom).toBeLessThan(nav.getBoundingClientRect().top);
   },
 };
 export const MobileConfirmationWithBottomBar: Story = {

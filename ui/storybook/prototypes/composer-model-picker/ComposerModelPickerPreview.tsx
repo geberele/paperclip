@@ -18,6 +18,7 @@ export type ComposerModelPickerPreviewProps = {
   initialPanel?: "closed" | "settings" | "models" | "agents";
   initialSearch?: string;
   initialAssigneeSearch?: string;
+  initialMode?: IssueWorkMode;
   compact?: boolean;
 };
 
@@ -64,7 +65,7 @@ function AnimatedPickerBody({ children }: { children: ReactNode }) {
 
 export function ComposerModelPickerPreview({
   agentId = "codex", initialModel, initialEffort, initialFast = false,
-  initialPanel = "closed", initialSearch = "", initialAssigneeSearch = "", compact = false,
+  initialPanel = "closed", initialSearch = "", initialAssigneeSearch = "", initialMode = "standard", compact = false,
 }: ComposerModelPickerPreviewProps) {
   const [agent, setAgent] = useState<ComposerAgent>(composerAgents.find((item) => item.id === agentId) ?? composerAgents[0]);
   const [modelOverride, setModelOverride] = useState<string | null>(initialModel ?? null);
@@ -76,7 +77,7 @@ export function ComposerModelPickerPreview({
   const [assigneeSearch, setAssigneeSearch] = useState(initialAssigneeSearch);
   const [highlightedAssigneeIndex, setHighlightedAssigneeIndex] = useState(0);
   const [draft, setDraft] = useState("");
-  const [mode, setMode] = useState<IssueWorkMode>("standard");
+  const [mode, setMode] = useState<IssueWorkMode>(initialMode);
   const [attachments, setAttachments] = useState<string[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [messages, setMessages] = useState<SentMessage[]>([]);
@@ -258,13 +259,15 @@ export function ComposerModelPickerPreview({
             aria-label="Message" rows={2}
             className="block min-h-16 w-full resize-y bg-transparent text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground" />
           {attachments.length ? <div className="mt-2 flex flex-wrap gap-2">{attachments.map((name, index) => <button key={`${name}-${index}`} type="button" onClick={() => setAttachments((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="rounded-md bg-muted px-2 py-1 text-xs">{name} ×</button>)}</div> : null}
-          <div className="mt-3 flex min-w-0 items-end gap-1.5">
-            <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+          {mobile && mode !== "standard" ? <div className="mt-3 flex items-center"><ComposerModeChip mode={mode} onRemove={() => setMode("standard")} /></div> : null}
+          <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-3">
+            <div className="flex min-w-0 max-w-full items-center gap-1.5">
             <input ref={fileInputRef} type="file" className="hidden" onChange={(event) => { setAttachments((items) => [...items, ...Array.from(event.target.files ?? []).map((file) => file.name)]); event.target.value = ""; }} />
             <ComposerAddMenu mode={mode} onModeChange={setMode} onAttachFile={() => fileInputRef.current?.click()}
               onGoal={agent.adapterType === "codex_local" ? () => setDraft((current) => /^\/goal(?:\s|$)/.test(current) ? current : `/goal ${current}`) : undefined} mobile={mobile} />
-            <ComposerModeChip mode={mode} onRemove={() => setMode("standard")} />
-            <div className="ml-auto shrink-0">
+            {!mobile ? <ComposerModeChip mode={mode} onRemove={() => setMode("standard")} /> : null}
+            </div>
+            <div className="ml-auto flex min-w-0 max-w-full items-center gap-1.5">
             {mobile ? (
               <Dialog open={pickerOpen} onOpenChange={handlePickerOpenChange}>
                 <DialogTrigger asChild>{pickerTrigger}</DialogTrigger>
@@ -281,9 +284,8 @@ export function ComposerModelPickerPreview({
                 </PopoverContent>
               </Popover>
             )}
+            <button type="button" onClick={send} disabled={!draft.trim()} aria-label="Send message" className="grid size-8 min-h-8 min-w-8 shrink-0 aspect-square place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"><ArrowUp className="size-4" aria-hidden /></button>
             </div>
-            </div>
-            <button type="button" onClick={send} disabled={!draft.trim()} aria-label="Send message" className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40"><ArrowUp className="size-4" aria-hidden /></button>
           </div>
         </div>
       </div>

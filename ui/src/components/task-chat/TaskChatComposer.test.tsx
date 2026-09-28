@@ -953,8 +953,9 @@ describe("TaskChatComposer", () => {
       currentAssigneeValue="agent:codex" />);
 
     const actions = container.querySelector<HTMLElement>('[data-testid="task-chat-composer-actions"]')!;
-    expect(actions.lastElementChild).toBe(sendButton());
+    expect(actions.lastElementChild?.lastElementChild).toBe(sendButton());
     expect(actions.firstElementChild?.contains(sendButton())).toBe(false);
+    expect(actions.lastElementChild?.querySelector('[data-testid="task-chat-composer-assignee"]')).not.toBeNull();
     expect(actions.querySelector('[data-testid="task-chat-composer-assignee"] [data-slot="agent-avatar"] img')).not.toBeNull();
 
     flushSync(() => container.querySelector<HTMLButtonElement>('[data-testid="task-chat-composer-add"]')!.click());
@@ -965,6 +966,9 @@ describe("TaskChatComposer", () => {
 
     flushSync(() => document.querySelector<HTMLButtonElement>('[data-testid="composer-add-plan"]')!.click());
     expect(container.querySelector('[data-testid="task-chat-composer-mode"]')?.textContent).toContain("Plan mode");
+    expect(container.querySelector('[data-testid="task-chat-composer-mobile-mode"]')?.contains(
+      container.querySelector('[data-testid="task-chat-composer-mode"]'),
+    )).toBe(true);
     expect(document.querySelector('[role="dialog"][data-state="open"]')).toBeNull();
   });
 

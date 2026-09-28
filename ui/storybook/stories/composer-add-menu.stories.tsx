@@ -143,7 +143,11 @@ export const PlanChip: Story = {
   args: { initialMode: "planning" },
   play: async ({ canvasElement }) => {
     const page = within(canvasElement.ownerDocument.body);
-    await expect(page.getByRole("button", { name: "Remove Plan mode" })).toBeVisible();
+    const chip = page.getByRole("button", { name: "Remove Plan mode" });
+    const assignee = page.getByTestId("task-chat-composer-assignee");
+    await expect(chip).toBeVisible();
+    await expect(chip.getBoundingClientRect().height).toBe(assignee.getBoundingClientRect().height);
+    await expect(Math.abs(chip.getBoundingClientRect().top - assignee.getBoundingClientRect().top)).toBeLessThanOrEqual(1);
   },
 };
 
@@ -152,7 +156,11 @@ export const AskChip: Story = {
   args: { initialMode: "ask" },
   play: async ({ canvasElement }) => {
     const page = within(canvasElement.ownerDocument.body);
-    await expect(page.getByRole("button", { name: "Remove Ask mode" })).toBeVisible();
+    const chip = page.getByRole("button", { name: "Remove Ask mode" });
+    const assignee = page.getByTestId("task-chat-composer-assignee");
+    await expect(chip).toBeVisible();
+    await expect(chip.getBoundingClientRect().height).toBe(assignee.getBoundingClientRect().height);
+    await expect(Math.abs(chip.getBoundingClientRect().top - assignee.getBoundingClientRect().top)).toBeLessThanOrEqual(1);
   },
 };
 
@@ -232,6 +240,26 @@ export const MobilePlanWithBottomBar: Story = {
     await userEvent.upload(input, new File(["Mobile layout"], "notes.txt", { type: "text/plain" }));
     await expect(page.getByText("notes.txt")).toBeVisible();
     await expect(page.getByRole("button", { name: "Remove Plan mode" })).toBeVisible();
+    await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
+    const plus = page.getByRole("button", { name: "Add to composer" }).getBoundingClientRect();
+    const send = page.getByRole("button", { name: "Send" }).getBoundingClientRect();
+    const chip = page.getByRole("button", { name: "Remove Plan mode" }).getBoundingClientRect();
+    await expect(send.width).toBe(send.height);
+    await expect(Math.abs(plus.top - send.top)).toBeLessThanOrEqual(1);
+    await expect(chip.bottom).toBeLessThanOrEqual(send.top);
+  },
+};
+
+export const MobileAskWithBottomBar: Story = {
+  name: "10b · Mobile Ask with bottom bar",
+  args: { initialMode: "ask", mobile: true, mobileContext: true },
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const page = within(canvasElement.ownerDocument.body);
+    const chip = page.getByRole("button", { name: "Remove Ask mode" }).getBoundingClientRect();
+    const send = page.getByRole("button", { name: "Send" }).getBoundingClientRect();
+    await expect(send.width).toBe(send.height);
+    await expect(chip.bottom).toBeLessThanOrEqual(send.top);
     await expect(page.getByRole("navigation", { name: "Mobile navigation" })).toBeVisible();
   },
 };

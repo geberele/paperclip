@@ -1119,7 +1119,10 @@ export function TaskChatComposer({
     <div className="flex min-w-0 flex-col gap-2">
       {takeoverVisible && takeover ? (
         <section
-          className="relative max-h-(--tc-interaction-card-max-h) overflow-y-auto rounded-xl border border-border bg-card p-(--sz-18px) shadow-sm scrollbar-auto-hide"
+          className={cn(
+            "relative rounded-xl border border-border bg-card p-(--sz-18px) shadow-sm",
+            mobile ? "overflow-visible" : "max-h-(--tc-interaction-card-max-h) overflow-y-auto scrollbar-auto-hide",
+          )}
           aria-label={takeover.label}
           data-testid="task-chat-composer-takeover"
         >
@@ -1365,11 +1368,17 @@ export function TaskChatComposer({
             </AttachmentGroup>
           ) : null}
 
+          {mobile && !queuedEdit && pendingMode !== "standard" ? (
+            <div className="mt-2 flex items-center px-1" data-testid="task-chat-composer-mobile-mode">
+              <ComposerModeChip mode={pendingMode} onRemove={onWorkModeChange ? () => setPendingMode("standard") : undefined}
+                disabled={disabled || !!uncertainSubmission} testId="task-chat-composer-mode" />
+            </div>
+          ) : null}
           <div
-            className={cn("mt-2 flex gap-2", mobile ? "items-end" : "items-center")}
+            className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-3"
             data-testid="task-chat-composer-actions"
           >
-            <div className={mobile ? "flex min-w-0 flex-1 flex-wrap items-center gap-2" : "contents"}>
+            <div className="flex min-w-0 max-w-full items-center gap-2">
             {canAcceptFiles ? (
               <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileInputChange} />
             ) : null}
@@ -1391,12 +1400,13 @@ export function TaskChatComposer({
                   ? "Queued message changed"
                   : "Editing queued message"}
               </span>
-            ) : (
+            ) : !mobile ? (
               <ComposerModeChip mode={pendingMode} onRemove={onWorkModeChange ? () => setPendingMode("standard") : undefined}
                 disabled={disabled || !!uncertainSubmission} testId="task-chat-composer-mode" />
-            )}
+            ) : null}
+            </div>
 
-            <div className="ml-auto flex shrink-0 items-center">
+            <div className="ml-auto flex min-w-0 max-w-full items-center gap-2">
 
             {showAssignee && !queuedEdit && companyId && modelAgents ? (
               <ComposerRunSettingsPicker
@@ -1479,9 +1489,6 @@ export function TaskChatComposer({
                 Cancel
               </button>
             ) : null}
-            </div>
-            </div>
-
             <button
               type="button"
               onClick={() => void (showStop ? stopControl.stop() : submit())}
@@ -1523,7 +1530,7 @@ export function TaskChatComposer({
                     : "Send"
               }
               className={cn(
-                "flex h-8 w-8 shrink-0 items-center justify-center rounded-full transition-transform hover:scale-105 disabled:scale-100",
+                "flex size-8 min-h-8 min-w-8 shrink-0 aspect-square items-center justify-center rounded-full transition-transform hover:scale-105 disabled:scale-100",
                 streamlined
                   ? "bg-foreground text-background disabled:bg-foreground disabled:text-background disabled:opacity-100"
                   : "bg-primary text-primary-foreground disabled:bg-muted disabled:text-muted-foreground",
@@ -1541,6 +1548,7 @@ export function TaskChatComposer({
                 <ArrowUp className="h-4 w-4" aria-hidden />
               )}
             </button>
+            </div>
           </div>
           {stopControl.error ? (
             <p role="alert" className="text-xs text-destructive">

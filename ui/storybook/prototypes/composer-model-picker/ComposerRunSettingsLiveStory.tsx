@@ -32,6 +32,7 @@ export interface LiveStoryProps {
   initialPanel?: "closed" | "settings" | "models" | "agents";
   initialSearch?: string;
   initialAssigneeSearch?: string;
+  initialMode?: IssueWorkMode;
   mobile?: boolean;
   compact?: boolean;
 }
@@ -39,6 +40,7 @@ export interface LiveStoryProps {
 export function ComposerRunSettingsLiveStory({
   agentId = "codex", initialModel, initialEffort, initialFast = false,
   initialPanel = "closed", initialSearch = "", initialAssigneeSearch = "",
+  initialMode = "standard",
   mobile = false, compact = false,
 }: LiveStoryProps) {
   const [assignee, setAssignee] = useState(`agent:${agentId}`);
@@ -48,7 +50,7 @@ export function ComposerRunSettingsLiveStory({
       : null,
   );
   const [draft, setDraft] = useState("");
-  const [mode, setMode] = useState<IssueWorkMode>("standard");
+  const [mode, setMode] = useState<IssueWorkMode>(initialMode);
   const [attachments, setAttachments] = useState<string[]>([]);
   const [sent, setSent] = useState<Array<{ body: string; agent: string; overrides: unknown }>>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -94,13 +96,15 @@ export function ComposerRunSettingsLiveStory({
           }}
           className="block min-h-16 w-full resize-y bg-transparent text-sm leading-6 text-foreground outline-none placeholder:text-muted-foreground" />
         {attachments.length ? <div className="mt-2 flex flex-wrap gap-2">{attachments.map((name, index) => <button key={`${name}-${index}`} type="button" onClick={() => setAttachments((items) => items.filter((_, itemIndex) => itemIndex !== index))} className="rounded-md bg-muted px-2 py-1 text-xs">{name} ×</button>)}</div> : null}
-        <div className="mt-3 flex min-w-0 items-end gap-1.5">
-          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
+        {mobile && mode !== "standard" ? <div className="mt-3 flex items-center"><ComposerModeChip mode={mode} onRemove={() => setMode("standard")} /></div> : null}
+        <div className="mt-3 flex min-w-0 flex-wrap items-center gap-x-1.5 gap-y-3">
+          <div className="flex min-w-0 max-w-full items-center gap-1.5">
             <input ref={fileInputRef} type="file" className="hidden" onChange={(event) => { setAttachments((items) => [...items, ...Array.from(event.target.files ?? []).map((file) => file.name)]); event.target.value = ""; }} />
             <ComposerAddMenu mode={mode} onModeChange={setMode} onAttachFile={() => fileInputRef.current?.click()}
               onGoal={selectedAgent?.adapterType === "codex_local" ? () => setDraft((current) => /^\/goal(?:\s|$)/.test(current) ? current : `/goal ${current}`) : undefined} mobile={mobile} />
-            <ComposerModeChip mode={mode} onRemove={() => setMode("standard")} />
-            <div className="ml-auto shrink-0">
+            {!mobile ? <ComposerModeChip mode={mode} onRemove={() => setMode("standard")} /> : null}
+          </div>
+          <div className="ml-auto flex min-w-0 max-w-full items-center gap-1.5">
             <ComposerRunSettingsPicker companyId="storybook" assigneeValue={assignee} currentAssigneeValue={assignee}
               options={options} agents={agents} settings={settings} onSettingsChange={setSettings}
               onAssigneeChange={(value) => { setAssignee(value); setSettings(null); }} mobile={mobile}
@@ -109,12 +113,11 @@ export function ComposerRunSettingsLiveStory({
               initialModelSearch={initialSearch} initialAssigneeSearch={initialAssigneeSearch}
               renderAssigneeIdentity={(value, _label, placement) => value.startsWith("agent:")
                 ? <AgentAvatar agent={agents.get(value.slice(6))} size={placement === "trigger" ? 16 : 24} /> : null} />
-            </div>
-          </div>
           <button type="button" aria-label="Send message" disabled={!draft.trim()} onClick={send}
-            className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
+            className="grid size-8 min-h-8 min-w-8 shrink-0 aspect-square place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
             <ArrowUp className="size-4" />
           </button>
+          </div>
         </div>
       </div>
     </div>

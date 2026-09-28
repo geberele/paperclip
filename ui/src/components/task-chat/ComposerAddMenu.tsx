@@ -100,7 +100,7 @@ export function ComposerModeChip({ mode, onRemove, disabled, testId }: ComposerM
   const Icon = meta.icon;
   return <button type="button" onClick={onRemove} disabled={disabled || !onRemove}
     aria-label={`Remove ${meta.label}`} data-pending-work-mode={mode} data-testid={testId}
-    className={cn("inline-flex h-7 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", meta.classes.chip)}>
+    className={cn("inline-flex h-8 shrink-0 items-center gap-1.5 rounded-full border px-2.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50", meta.classes.chip)}>
     <Icon className="size-3.5" aria-hidden />
     <span>{meta.label}</span>
     <X className="size-3.5" aria-hidden />

@@ -261,3 +261,33 @@ export const ProductionMobileComposer: Story = {
     await expect(send.getBoundingClientRect().left - capsule.getBoundingClientRect().right).toBeLessThanOrEqual(16);
   },
 };
+
+export const IntermediateWidthPlan: Story = {
+  name: "24 · Narrow desktop with Plan and open picker",
+  args: { compact: true, initialMode: "planning", initialPanel: "settings" },
+  play: async ({ canvasElement }) => {
+    const screen = within(canvasElement.ownerDocument.body);
+    const chip = screen.getByRole("button", { name: "Remove Plan mode" }).getBoundingClientRect();
+    const capsule = screen.getByRole("button", { name: "Select assignee, model and effort" }).getBoundingClientRect();
+    const send = screen.getByRole("button", { name: "Send message" }).getBoundingClientRect();
+    await expect(chip.height).toBe(capsule.height);
+    await expect(Math.abs(send.top - capsule.top)).toBeLessThanOrEqual(1);
+    await expect(send.left - capsule.right).toBeLessThanOrEqual(16);
+    await expect(screen.getByTestId("composer-model-popover")).toBeVisible();
+  },
+};
+
+export const ProductionIntermediateWidthPlan: Story = {
+  name: "24b · App picker at narrow desktop width",
+  render: () => <ComposerRunSettingsLiveStory compact initialMode="planning" initialPanel="settings" />,
+  play: async ({ canvasElement }) => {
+    const screen = within(canvasElement.ownerDocument.body);
+    const chip = screen.getByRole("button", { name: "Remove Plan mode" }).getBoundingClientRect();
+    const capsule = screen.getByTestId("task-chat-composer-assignee").getBoundingClientRect();
+    const send = screen.getByRole("button", { name: "Send message" }).getBoundingClientRect();
+    await expect(chip.height).toBe(capsule.height);
+    await expect(Math.abs(send.top - capsule.top)).toBeLessThanOrEqual(1);
+    await expect(send.left - capsule.right).toBeLessThanOrEqual(16);
+    await expect(screen.getByTestId("composer-model-popover")).toBeVisible();
+  },
+};
