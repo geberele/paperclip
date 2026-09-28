@@ -9,7 +9,7 @@ const meta = {
     layout: "fullscreen",
     options: { showPanel: false },
     docs: { description: { component:
-      "Interactive design proposal for one composer picker with a searchable assignee above model and effort. The assignee determines the harness and catalog; changing assignees clears per-message overrides. Effort is selected only with a model-specific slider where levels are known; no effort section appears when capabilities are unknown. The picker animates its height as content changes and opens as a modal on mobile. Custom IDs are accepted for harnesses that support them, while OpenRouter requires openrouter/provider/model. A fast-mode icon sits to the left of the effort label only for supported known Codex models, and the reset icon sits to the right. These stories use local fixture state; composer selections are not wired to task execution yet."
+      "The task composer’s production assignee, model, and effort picker with Storybook agent and model fixtures. The assignee determines the harness and catalog; changing assignees clears per-message overrides. Effort is selected only with a model-specific slider where levels are known. The picker animates its height as content changes and opens as a modal on mobile. Custom IDs are accepted for harnesses that support them, while OpenRouter requires openrouter/provider/model. A fast-mode icon sits to the left of the effort label only for supported known Codex models, and the reset icon sits to the right."
     } },
   },
   args: { agentId: "codex", initialPanel: "closed" },
