@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { CommitCard } from "../../prototypes/rich-artifacts/ArtifactCards";
+import { CommitCard } from "@/components/artifacts/RichArtifactCards";
 import {
   decorators,
   parameters,

@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { VideoCard } from "../../prototypes/rich-artifacts/ArtifactCards";
+import { VideoCard } from "@/components/artifacts/RichArtifactCards";
 import {
   decorators,
   parameters,

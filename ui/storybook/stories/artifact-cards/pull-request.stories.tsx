@@ -1,5 +1,5 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
-import { PullRequestCard } from "../../prototypes/rich-artifacts/ArtifactCards";
+import { PullRequestCard } from "@/components/artifacts/RichArtifactCards";
 import {
   decorators,
   parameters,
@@ -23,7 +23,7 @@ const meta = {
     targetBranch: textData("Target branch."),
     state: {
       control: "select",
-      options: ["open", "merged", "closed"],
+      options: ["open", "draft", "merged", "closed", "unknown"],
       description: "Saved PR state. The component formats its label.",
       table: { category: "Artifact data" },
     },

@@ -36,6 +36,7 @@ export interface ArtifactIdentity {
   summary: string;
   author: string;
   updatedAt: string;
+  statusBadge?: ReactNode;
 }
 
 function Identity({
@@ -60,12 +61,16 @@ function Footer({
   author,
   updatedAt,
   action,
-}: Pick<ArtifactIdentity, "author" | "updatedAt"> & { action: ReactNode }) {
+  statusBadge,
+}: Pick<ArtifactIdentity, "author" | "updatedAt" | "statusBadge"> & {
+  action: ReactNode;
+}) {
   return (
     <footer className="flex flex-wrap items-center justify-between gap-3 border-t border-border px-5 py-3">
       <span className="text-xs text-muted-foreground">
         {[author, updatedAt].filter(Boolean).join(" · ")}
       </span>
+      {statusBadge}
       {action}
     </footer>
   );
@@ -124,32 +129,38 @@ function Viewer({
 }
 
 interface DiffProps {
-  additions: number;
-  deletions: number;
-  filesChanged: number;
+  additions?: number | null;
+  deletions?: number | null;
+  filesChanged?: number | null;
 }
 function Diff({ additions, deletions, filesChanged }: DiffProps) {
   return (
     <div className="flex flex-wrap gap-2 font-mono text-xs">
-      <span className="text-(--status-task-icon-done)">
-        +{additions.toLocaleString("en-US")}
-      </span>
-      <span className="text-(--status-task-icon-blocked)">
-        −{deletions.toLocaleString("en-US")}
-      </span>
-      <span className="text-muted-foreground">
-        · {filesChanged} {filesChanged === 1 ? "file" : "files"}
-      </span>
+      {additions != null && (
+        <span className="text-(--status-task-icon-done)">
+          +{additions.toLocaleString("en-US")}
+        </span>
+      )}
+      {deletions != null && (
+        <span className="text-(--status-task-icon-blocked)">
+          −{deletions.toLocaleString("en-US")}
+        </span>
+      )}
+      {filesChanged != null && (
+        <span className="text-muted-foreground">
+          {filesChanged} {filesChanged === 1 ? "file" : "files"}
+        </span>
+      )}
     </div>
   );
 }
 
 export interface PullRequestCardProps extends ArtifactIdentity, DiffProps {
-  number: number;
+  number?: number | null;
   repository: string;
   sourceBranch: string;
   targetBranch: string;
-  state: "open" | "merged" | "closed";
+  state: "open" | "draft" | "merged" | "closed" | "unknown";
   checks: "passed" | "pending" | "failed" | "unknown";
   evidenceSource: string;
   reviewSummary: string;
@@ -162,7 +173,13 @@ const checksLabel = {
   failed: "Checks failed",
   unknown: "Checks not available",
 };
-const stateLabel = { open: "Open", merged: "Merged", closed: "Closed" };
+const stateLabel = {
+  open: "Open",
+  draft: "Draft",
+  merged: "Merged",
+  closed: "Closed",
+  unknown: "State unknown",
+};
 
 export function PullRequestCard(props: PullRequestCardProps) {
   const {
@@ -194,7 +211,7 @@ export function PullRequestCard(props: PullRequestCardProps) {
         <div className="flex items-center justify-between gap-2">
           <span className="flex items-center gap-2 text-xs text-muted-foreground">
             <GitPullRequest className="size-4" /> Pull request{" "}
-            <span className="font-mono">#{number}</span>
+            {number != null && <span className="font-mono">#{number}</span>}
           </span>
           <Badge
             variant="outline"
@@ -211,16 +228,20 @@ export function PullRequestCard(props: PullRequestCardProps) {
         <Identity {...props} />
         <div className="flex flex-col gap-2 text-xs text-muted-foreground">
           <span>{repository}</span>
-          <div className="flex min-w-0 items-center gap-2">
-            <GitBranch className="size-3.5 shrink-0" />
-            <code className="min-w-0 truncate" title={sourceBranch}>
-              {sourceBranch}
-            </code>
-            <ArrowRight className="size-3.5 shrink-0" />
-            <code className="min-w-0 truncate" title={targetBranch}>
-              {targetBranch}
-            </code>
-          </div>
+          {(sourceBranch || targetBranch) && (
+            <div className="flex min-w-0 items-center gap-2">
+              <GitBranch className="size-3.5 shrink-0" />
+              <code className="min-w-0 truncate" title={sourceBranch}>
+                {sourceBranch}
+              </code>
+              {sourceBranch && targetBranch && (
+                <ArrowRight className="size-3.5 shrink-0" />
+              )}
+              <code className="min-w-0 truncate" title={targetBranch}>
+                {targetBranch}
+              </code>
+            </div>
+          )}
         </div>
         <Diff {...props} />
       </div>
@@ -320,18 +341,27 @@ function Markdown({ body }: { body: string }) {
 
 export interface DocumentCardProps extends ArtifactIdentity {
   filename: string;
-  revision: number;
+  revision?: number | null;
   body: string;
+  onOpen?: () => void;
+  expanded?: boolean;
+  actions?: ReactNode;
 }
 export function DocumentCard(props: DocumentCardProps) {
   return (
     <Card>
-      <div className="max-h-52 overflow-hidden border-b border-border bg-muted/20 p-5">
-        <Markdown body={props.body} />
-      </div>
+      {props.body && (
+        <div
+          className="max-h-52 overflow-hidden border-b border-border bg-muted/20 p-5"
+          inert
+        >
+          <Markdown body={props.body.slice(0, 4000)} />
+        </div>
+      )}
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <FileText className="size-4" /> Markdown · revision {props.revision}
+          <FileText className="size-4" /> Markdown
+          {props.revision != null && ` · revision ${props.revision}`}
         </span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
@@ -341,13 +371,27 @@ export function DocumentCard(props: DocumentCardProps) {
       <Footer
         {...props}
         action={
-          <Viewer
-            title={props.title}
-            description={`${props.filename} · revision ${props.revision}`}
-            action="Read document"
-          >
-            <Markdown body={props.body} />
-          </Viewer>
+          <div className="flex flex-wrap items-center gap-2">
+            {props.actions}
+            {props.onOpen ? (
+              <Button
+                size="sm"
+                variant="outline"
+                aria-expanded={props.expanded}
+                onClick={props.onOpen}
+              >
+                {props.expanded ? "Close document" : "Read document"}
+              </Button>
+            ) : (
+              <Viewer
+                title={props.title}
+                description={props.filename}
+                action="Read document"
+              >
+                <Markdown body={props.body} />
+              </Viewer>
+            )}
+          </div>
         }
       />
     </Card>
@@ -358,6 +402,8 @@ export interface DataCardProps extends ArtifactIdentity {
   filename: string;
   columns: string[];
   rows: (string | number)[][];
+  truncated?: boolean;
+  downloadUrl?: string;
 }
 function DataTable({ columns, rows }: Pick<DataCardProps, "columns" | "rows">) {
   return (
@@ -406,8 +452,9 @@ export function DataCard(props: DataCardProps) {
       </div>
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Table2 className="size-4" /> CSV · {props.rows.length}{" "}
-          {props.rows.length === 1 ? "row" : "rows"} · {props.columns.length}{" "}
+          <Table2 className="size-4" /> CSV · {props.truncated ? "First " : ""}
+          {props.rows.length} {props.rows.length === 1 ? "row" : "rows"} ·{" "}
+          {props.columns.length}{" "}
           {props.columns.length === 1 ? "column" : "columns"}
         </span>
         <Identity {...props} />
@@ -427,7 +474,10 @@ export function DataCard(props: DataCardProps) {
             <Button asChild variant="outline" size="sm" className="w-fit">
               <a
                 download={props.filename}
-                href={`data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`}
+                href={
+                  props.downloadUrl ||
+                  `data:text/csv;charset=utf-8,${encodeURIComponent(csv)}`
+                }
               >
                 Download CSV
               </a>
@@ -446,6 +496,7 @@ function ImageContent({ src, alt }: { src: string; alt: string }) {
       src={src}
       alt={alt}
       onError={() => setFailedUrl(src)}
+      loading="lazy"
       className="aspect-video w-full object-contain"
     />
   ) : (
@@ -460,8 +511,9 @@ export interface ImageCardProps extends ArtifactIdentity {
   filename: string;
   imageUrl: string;
   alt: string;
-  width: number;
-  height: number;
+  width?: number | null;
+  height?: number | null;
+  onOpen?: () => void;
 }
 export function ImageCard(props: ImageCardProps) {
   return (
@@ -471,8 +523,10 @@ export function ImageCard(props: ImageCardProps) {
       </div>
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <ImageIcon className="size-4" /> Image · {props.width} ×{" "}
-          {props.height}
+          <ImageIcon className="size-4" /> Image
+          {props.width && props.height
+            ? ` · ${props.width} × ${props.height}`
+            : ""}
         </span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
@@ -482,13 +536,24 @@ export function ImageCard(props: ImageCardProps) {
       <Footer
         {...props}
         action={
-          <Viewer
-            title={props.title}
-            description={props.filename}
-            action="View image"
-          >
-            <ImageContent src={props.imageUrl} alt={props.alt} />
-          </Viewer>
+          props.onOpen ? (
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label={`View image: ${props.title}`}
+              onClick={props.onOpen}
+            >
+              View image
+            </Button>
+          ) : (
+            <Viewer
+              title={props.title}
+              description={props.filename}
+              action="View image"
+            >
+              <ImageContent src={props.imageUrl} alt={props.alt} />
+            </Viewer>
+          )
         }
       />
     </Card>
@@ -500,6 +565,7 @@ export interface VideoCardProps extends ArtifactIdentity {
   videoUrl: string;
   posterUrl: string;
   duration: string;
+  onOpen?: () => void;
 }
 export function VideoCard(props: VideoCardProps) {
   return (
@@ -515,7 +581,8 @@ export function VideoCard(props: VideoCardProps) {
       />
       <div className="flex flex-col gap-3 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Film className="size-4" /> Video · {props.duration}
+          <Film className="size-4" /> Video
+          {props.duration && ` · ${props.duration}`}
         </span>
         <Identity {...props} />
         <span className="break-all font-mono text-xs text-muted-foreground">
@@ -524,7 +591,20 @@ export function VideoCard(props: VideoCardProps) {
       </div>
       <Footer
         {...props}
-        action={<SourceLink url={props.videoUrl}>Open video</SourceLink>}
+        action={
+          props.onOpen ? (
+            <Button
+              size="sm"
+              variant="outline"
+              aria-label={`Open video: ${props.title}`}
+              onClick={props.onOpen}
+            >
+              Open video
+            </Button>
+          ) : (
+            <SourceLink url={props.videoUrl}>Open video</SourceLink>
+          )
+        }
       />
     </Card>
   );
@@ -572,7 +652,8 @@ export function FileCard(props: FileCardProps) {
     <Card>
       <div className="flex flex-col gap-4 p-5">
         <span className="flex items-center gap-2 text-xs text-muted-foreground">
-          <File className="size-4" /> File · {props.fileSize}
+          <File className="size-4" /> File
+          {props.fileSize && ` · ${props.fileSize}`}
         </span>
         <Identity {...props} />
         <div className="flex flex-col gap-1">
