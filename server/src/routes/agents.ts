@@ -2878,12 +2878,28 @@ export function agentRoutes(
     return KNOWN_INSTRUCTIONS_BUNDLE_KEYS.some((key) => adapterConfig[key] !== undefined);
   }
 
+  // Host MCP inheritance exposes MCP servers that run with the host's own
+  // credentials. Only a board user may turn it on; an agent-authenticated
+  // caller must not be able to grant it to itself or to a peer.
+  function assertNoAgentHostMcpInheritanceMutation(
+    req: Request,
+    adapterConfig: Record<string, unknown> | null | undefined,
+    path = "adapterConfig",
+  ) {
+    if (req.actor.type !== "agent" || !adapterConfig) return;
+    if (adapterConfig.inheritHostMcpServers === undefined) return;
+    throw forbidden(
+      `Agent-authenticated callers cannot modify host MCP inheritance (${path}.inheritHostMcpServers)`,
+    );
+  }
+
   function assertNoAgentAdapterConfigMutation(
     req: Request,
     adapterConfig: Record<string, unknown>,
     path = "adapterConfig",
   ) {
     assertNoAgentInstructionsConfigMutation(req, adapterConfig, path);
+    assertNoAgentHostMcpInheritanceMutation(req, adapterConfig, path);
     assertNoAgentHostWorkspaceCommandMutation(
       req,
       collectAgentAdapterWorkspaceCommandPaths(adapterConfig, path),

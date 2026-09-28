@@ -31,7 +31,7 @@ export const help: Record<string, string> = {
   model: "Override the default model used by the adapter.",
   thinkingEffort: "Control model reasoning depth. Supported values vary by adapter/model.",
   chrome: "Enable Claude's Chrome integration by passing --chrome.",
-  inheritHostMcpServers: "Keep the MCP servers registered on this machine (user and project scope, e.g. via `claude mcp add`) available alongside Paperclip's managed MCP servers. Off by default: runs then see only Paperclip-managed servers (--strict-mcp-config).",
+  inheritHostMcpServers: "Claude CLI engine, local runs only. When Paperclip attaches its managed MCP servers to a run, also keep the MCP servers registered on this machine (user and project scope, e.g. via `claude mcp add`). Off by default: such runs then see only the Paperclip-managed servers (--strict-mcp-config). Host servers use the host's own credentials, so only a board user can turn this on.",
   dangerouslySkipPermissions: "Run unattended by auto-approving adapter permission prompts when supported.",
   dangerouslyBypassSandbox: "Run Codex without sandbox restrictions. Required for filesystem/network access.",
   search: "Enable Codex web search capability during runs.",

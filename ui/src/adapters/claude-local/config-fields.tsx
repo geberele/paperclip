@@ -242,7 +242,7 @@ export function ClaudeLocalAdvancedFields({
             : mark("adapterConfig", "chrome", v)
         }
       />
-      {!isCreate && (
+      {!isCreate && engine === "cli" && (
         <ToggleField
           label="Inherit host MCP servers"
           hint={help.inheritHostMcpServers}

@@ -36,7 +36,7 @@ subscription quota exhaustion merely because ACP labels them `limit`.
 | `graceSec` | number | No | Grace period before force-kill |
 | `maxTurnsPerRun` | number | No | Max agentic turns per heartbeat (defaults to `300`) |
 | `dangerouslySkipPermissions` | boolean | No | Skip permission prompts (default: `true`); required for headless runs where interactive approval is impossible |
-| `inheritHostMcpServers` | boolean | No | Keep the host's user/project-scope MCP servers (registered with `claude mcp add`) available alongside Paperclip-managed servers by omitting `--strict-mcp-config` (default: `false`) |
+| `inheritHostMcpServers` | boolean | No | CLI engine, local target only. Keep the host's user/project-scope MCP servers (registered with `claude mcp add`) available alongside Paperclip-managed servers by omitting `--strict-mcp-config` (default: `false`). Board-only: agent-authenticated updates cannot set it |
 
 ## Default model
 
@@ -102,6 +102,13 @@ On-call checklist if you see this in production:
 When Paperclip attaches managed MCP servers to a run (its own project tools, connection tools, or connectors), it writes a per-run `--mcp-config` and, by default, also passes `--strict-mcp-config` so the agent sees only those servers. This keeps runs isolated from whatever is registered on the host.
 
 Set `inheritHostMcpServers: true` to omit `--strict-mcp-config`. Claude Code then merges Paperclip's config with the servers registered on the host at user and project scope (for example an Atlassian or Figma server added with `claude mcp add`), so repository commands that depend on those servers keep working under Paperclip. Host servers run with the host's own credentials, so enable this only for agents you trust with them.
+
+Scope and limits:
+
+- **CLI engine only.** The ACP engine passes Paperclip-managed servers to the ACP agent over the protocol and does not use `--strict-mcp-config`; the flag has no effect there. The UI shows the toggle only when the engine is set to Claude CLI.
+- **Local execution target only.** A managed remote run (sandbox or SSH) uses a separate remote Claude config whose seed excludes host MCP server settings, so the host's servers are not available there even with the flag on.
+- **No managed servers, no strict flag.** When a run attaches no Paperclip-managed servers, the adapter passes neither `--mcp-config` nor `--strict-mcp-config`, and host servers load as usual. The flag only matters when managed servers are present.
+- **Board-only.** Because host servers carry host credentials, only a board user can set this flag. Agent-authenticated configuration updates that include it are rejected with 403.
 
 ## Skills Injection
 

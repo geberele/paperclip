@@ -941,6 +941,56 @@ describe.sequential("agent permission routes", () => {
     expect(mockLogActivity).not.toHaveBeenCalled();
   }, 15_000);
 
+  it("blocks agent-authenticated self-updates that enable host MCP inheritance", async () => {
+    const app = await createApp({
+      type: "agent",
+      agentId,
+      companyId,
+      source: "agent_key",
+      runId: "run-1",
+    });
+
+    const res = await requestApp(app, (baseUrl) => request(baseUrl)
+      .patch(`/api/agents/${agentId}`)
+      .send({
+        adapterConfig: {
+          inheritHostMcpServers: true,
+        },
+      }));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toContain("host MCP inheritance");
+    expect(mockLogActivity).not.toHaveBeenCalled();
+  });
+
+  it("blocks agent-authenticated hires that enable host MCP inheritance", async () => {
+    mockAccessService.hasPermission.mockResolvedValue(true);
+
+    const app = await createApp({
+      type: "agent",
+      agentId,
+      companyId,
+      source: "agent_key",
+      runId: "run-1",
+    });
+
+    const res = await requestApp(app, (baseUrl) => request(baseUrl)
+      .post(`/api/companies/${companyId}/agent-hires`)
+      .send({
+        name: "Injected",
+        role: "engineer",
+        adapterType: "claude_local",
+        adapterConfig: {
+          inheritHostMcpServers: true,
+        },
+      }));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toContain("host MCP inheritance");
+    expect(mockAgentService.create).not.toHaveBeenCalled();
+    expect(mockLogActivity).not.toHaveBeenCalled();
+  });
+
   it("blocks agent-authenticated instructions-path updates", async () => {
     const app = await createApp({
       type: "agent",
