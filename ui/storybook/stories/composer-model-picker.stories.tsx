@@ -1,6 +1,7 @@
 import type { Meta, StoryObj } from "@storybook/react-vite";
 import { expect, userEvent, within } from "storybook/test";
 import { ComposerModelPickerPreview } from "../prototypes/composer-model-picker/ComposerModelPickerPreview";
+import { ComposerRunSettingsLiveStory } from "../prototypes/composer-model-picker/ComposerRunSettingsLiveStory";
 
 const meta = {
   title: "Tasks/Composer/Model and effort picker",
@@ -9,7 +10,7 @@ const meta = {
     layout: "fullscreen",
     options: { showPanel: false },
     docs: { description: { component:
-      "The task composer’s production assignee, model, and effort picker with Storybook agent and model fixtures. The assignee determines the harness and catalog; changing assignees clears per-message overrides. Effort is selected only with a model-specific slider where levels are known. The picker animates its height as content changes and opens as a modal on mobile. Custom IDs are accepted for harnesses that support them, while OpenRouter requires openrouter/provider/model. A fast-mode icon sits to the left of the effort label only for supported known Codex models, and the reset icon sits to the right."
+      "The approved composer picker design and two matching stories using the production picker. The assignee capsule stays beside Send on desktop and mobile. The assignee determines the harness and catalog; changing assignees clears per-message overrides. Effort is selected only with a model-specific slider where levels are known. The picker animates its height as content changes and opens as a modal on mobile. Custom IDs are accepted for harnesses that support them, while OpenRouter requires openrouter/provider/model. A fast-mode icon sits to the left of the effort label only for supported known Codex models, and the reset icon sits to the right."
     } },
   },
   args: { agentId: "codex", initialPanel: "closed" },
@@ -21,6 +22,12 @@ type Story = StoryObj<typeof meta>;
 
 export const DefaultComposer: Story = {
   name: "01 · Unified assignee and model picker",
+  play: async ({ canvasElement }) => {
+    const screen = within(canvasElement.ownerDocument.body);
+    const capsule = screen.getByRole("button", { name: "Select assignee, model and effort" });
+    const send = screen.getByRole("button", { name: "Send message" });
+    await expect(send.getBoundingClientRect().left - capsule.getBoundingClientRect().right).toBeLessThanOrEqual(16);
+  },
 };
 export const EffortSlider: Story = {
   name: "02 · Codex effort slider",
@@ -230,4 +237,27 @@ export const Light: Story = {
   name: "22 · Light theme",
   args: { agentId: "claude", initialPanel: "settings" },
   globals: { theme: "light" },
+};
+
+export const ProductionComposer: Story = {
+  name: "23 · App picker in composer",
+  render: () => <ComposerRunSettingsLiveStory initialPanel="models" />,
+  play: async ({ canvasElement }) => {
+    const screen = within(canvasElement.ownerDocument.body);
+    const capsule = screen.getByTestId("task-chat-composer-assignee");
+    const send = screen.getByRole("button", { name: "Send message" });
+    await expect(send.getBoundingClientRect().left - capsule.getBoundingClientRect().right).toBeLessThanOrEqual(16);
+  },
+};
+
+export const ProductionMobileComposer: Story = {
+  name: "23b · App picker on mobile",
+  render: () => <ComposerRunSettingsLiveStory initialPanel="settings" mobile compact />,
+  globals: { viewport: { value: "mobile1", isRotated: false } },
+  play: async ({ canvasElement }) => {
+    const screen = within(canvasElement.ownerDocument.body);
+    const capsule = screen.getByTestId("task-chat-composer-assignee");
+    const send = screen.getByRole("button", { name: "Send message" });
+    await expect(send.getBoundingClientRect().left - capsule.getBoundingClientRect().right).toBeLessThanOrEqual(16);
+  },
 };

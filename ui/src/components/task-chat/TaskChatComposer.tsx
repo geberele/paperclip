@@ -1396,7 +1396,7 @@ export function TaskChatComposer({
                 disabled={disabled || !!uncertainSubmission} testId="task-chat-composer-mode" />
             )}
 
-            {!mobile ? <div className="flex-1" /> : null}
+            <div className="ml-auto flex shrink-0 items-center">
 
             {showAssignee && !queuedEdit && companyId && modelAgents ? (
               <ComposerRunSettingsPicker
@@ -1479,6 +1479,7 @@ export function TaskChatComposer({
                 Cancel
               </button>
             ) : null}
+            </div>
             </div>
 
             <button

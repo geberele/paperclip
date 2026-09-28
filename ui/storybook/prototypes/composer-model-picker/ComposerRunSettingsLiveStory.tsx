@@ -100,7 +100,7 @@ export function ComposerRunSettingsLiveStory({
             <ComposerAddMenu mode={mode} onModeChange={setMode} onAttachFile={() => fileInputRef.current?.click()}
               onGoal={selectedAgent?.adapterType === "codex_local" ? () => setDraft((current) => /^\/goal(?:\s|$)/.test(current) ? current : `/goal ${current}`) : undefined} mobile={mobile} />
             <ComposerModeChip mode={mode} onRemove={() => setMode("standard")} />
-            <span className="hidden min-w-0 flex-1 sm:block" />
+            <div className="ml-auto shrink-0">
             <ComposerRunSettingsPicker companyId="storybook" assigneeValue={assignee} currentAssigneeValue={assignee}
               options={options} agents={agents} settings={settings} onSettingsChange={setSettings}
               onAssigneeChange={(value) => { setAssignee(value); setSettings(null); }} mobile={mobile}
@@ -109,6 +109,7 @@ export function ComposerRunSettingsLiveStory({
               initialModelSearch={initialSearch} initialAssigneeSearch={initialAssigneeSearch}
               renderAssigneeIdentity={(value, _label, placement) => value.startsWith("agent:")
                 ? <AgentAvatar agent={agents.get(value.slice(6))} size={placement === "trigger" ? 16 : 24} /> : null} />
+            </div>
           </div>
           <button type="button" aria-label="Send message" disabled={!draft.trim()} onClick={send}
             className="grid size-8 shrink-0 place-items-center rounded-full bg-primary text-primary-foreground disabled:opacity-40">
