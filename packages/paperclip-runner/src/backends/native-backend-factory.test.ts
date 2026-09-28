@@ -8,7 +8,6 @@ import {
 } from "../drivers/codex/codex-app-server-driver.test-support.js";
 import { createNativeSessionBackend } from "../index.js";
 import { createCodexNativeSessionBackend } from "./codex-native-backend.js";
-import { QUALIFIED_ACPX_PROFILES } from "../drivers/acpx/qualified-profiles.js";
 
 function execution(
   provider: NativeExecutionInput["provider"] = {
