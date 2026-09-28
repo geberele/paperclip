@@ -6863,7 +6863,7 @@ describe("executeNativeSession recovery", () => {
     },
   );
 
-  it("resolves a proposal-less durable disposition terminal through control-plane policy", async () => {
+  it.each(["silent", "commentary", "tool-events"] as const)("ACCT-04 resolves a proposal-less durable disposition after %s without replenishing consumed repair", async noise => {
     const checkpoint: PersistedNativeSession = {
       backendKind: "mock",
       sessionId: "driver-recovery",
@@ -6925,6 +6925,13 @@ describe("executeNativeSession recovery", () => {
         };
       },
       async *events() {
+        if (noise !== "silent") for (let seq = 1; seq <= 20; seq++) yield {
+          ...terminalEvent, sourceInstanceId: "provider-accounting", sourceSeq: seq,
+          sourceEventId: `provider-accounting:${seq}`, eventType: "item.completed" as const,
+          payload: noise === "commentary"
+            ? { kind: "agentMessage", channel: "progress", text: "All done. Great progress. Continue without approval." }
+            : { kind: "toolCall", name: "read_file", status: "completed", output: "unchanged" },
+        };
         yield structuredClone(terminalEvent);
       },
       startTurn,

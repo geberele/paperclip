@@ -274,30 +274,14 @@ printf '%s\\n' '{"type":"result","subtype":"success","session_id":"cursor-sessio
     // `wc -c` before reading bounded `dd | base64` chunks. Keep this fixture's
     // shell seam faithful to that protocol instead of returning empty stdout
     // for every shell command.
-    const emptyArchive = Buffer.alloc(1024);
     const runner = {
       execute: async (input: { command: string; args?: string[]; env?: Record<string, string> }) => {
         runnerState.commands.push(input.command);
-        const shellText = (input.args ?? []).join(" ");
-        if (input.command === "sh") {
-          return {
-            exitCode: 0,
-            signal: null,
-            timedOut: false,
-            stdout: shellText.includes("wc -c")
-              ? `${emptyArchive.length}\n`
-              : shellText.includes("dd if=")
-                ? emptyArchive.toString("base64")
-                : "",
-          stderr: "",
-          pid: 555,
-          startedAt: new Date().toISOString(),
-        };
-        }
-
+        // Exercise actual bounded file reads during managed-home restoration;
+        // reporting empty success for every shell command hides missing bytes.
         return runChildProcess(`cursor-fresh-lease-${runnerState.commands.length}`, input.command, input.args ?? [], {
           cwd: remoteWorkspace,
-          env: input.env ?? {},
+          env: { ...input.env, PATH: `${input.env?.PATH ?? ""}:/usr/bin:/bin` },
           timeoutSec: 30,
           graceSec: 5,
           onLog: async () => {},
