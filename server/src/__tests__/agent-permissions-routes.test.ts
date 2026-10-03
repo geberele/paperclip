@@ -963,6 +963,33 @@ describe.sequential("agent permission routes", () => {
     expect(mockLogActivity).not.toHaveBeenCalled();
   });
 
+  it("blocks agent-authenticated rollbacks to a revision that enables host MCP inheritance", async () => {
+    const revisionId = "33333333-3333-4333-8333-333333333333";
+    mockAgentService.getConfigRevision.mockResolvedValue({
+      id: revisionId,
+      afterConfig: {
+        adapterType: "claude_local",
+        adapterConfig: { inheritHostMcpServers: true },
+        runtimeConfig: {},
+      },
+    });
+    const app = await createApp({
+      type: "agent",
+      agentId,
+      companyId,
+      source: "agent_key",
+      runId: "run-1",
+    });
+
+    const res = await requestApp(app, (baseUrl) => request(baseUrl)
+      .post(`/api/agents/${agentId}/config-revisions/${revisionId}/rollback`));
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toContain("host MCP inheritance");
+    expect(mockAgentService.rollbackConfigRevision).not.toHaveBeenCalled();
+    expect(mockLogActivity).not.toHaveBeenCalled();
+  });
+
   it("blocks agent-authenticated hires that enable host MCP inheritance", async () => {
     mockAccessService.hasPermission.mockResolvedValue(true);
 
