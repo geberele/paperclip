@@ -430,9 +430,9 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
   );
   const effort = asString(config.effort, "");
   const chrome = asBoolean(config.chrome, false);
-  // Opt-in, CLI engine only: keep the host's own user/project-scope MCP
-  // servers (e.g. servers registered with `claude mcp add`) alongside the
-  // Paperclip-managed ones by omitting --strict-mcp-config. Off by default to
+  // Opt-in, CLI engine only: keep the host's own MCP servers (user/project
+  // scope from `claude mcp add`, claude.ai connectors, plugin servers)
+  // alongside the Paperclip-managed ones by omitting --strict-mcp-config. Off by default to
   // preserve isolation. The ACP engine hands MCP servers to the ACP agent over
   // the protocol and returns before this point, so it never reads the flag.
   // Board-only: agent-authenticated config updates cannot set it (see routes).
@@ -952,7 +952,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     if (runtimeMcpServers.length > 0) {
       commandNotes.push(
         inheritHostMcpServers
-          ? `Using ${runtimeMcpServers.length} Paperclip-managed MCP server(s) from ${effectiveMcpConfigPath}, merged with the host's user/project-scope MCP servers (inheritHostMcpServers).`
+          ? `Using ${runtimeMcpServers.length} Paperclip-managed MCP server(s) from ${effectiveMcpConfigPath}, merged with the host's own MCP servers (user/project scope, claude.ai connectors, plugins) (inheritHostMcpServers).`
           : `Using ${runtimeMcpServers.length} Paperclip-managed MCP server(s) from strict config ${effectiveMcpConfigPath}.`,
       );
     }
